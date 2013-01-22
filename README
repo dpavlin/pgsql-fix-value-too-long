@@ -1,0 +1,17 @@
+PostgreSQL - try to load SQL dump, parse errors and modify varchar to text for next re-try of dump load
+
+Sometimes when you try to load SQL dump from PostgreSQL you get errors like:
+
+ERROR:  value too long for type character varying(50)
+CONTEXT:  COPY casopis, line 24713, column vrsta_rada: "...something too long..."
+
+in that case, you have to modify database dump (which is usually compressed)
+while loading it into database. This is exactly what pgsql-fix-value-too-long.pl
+does together with parsing of error messages to figure out which varchar
+columns are too short and converting them to text columns on the fly.
+
+It's usually used by import-pgsql-dump.sh which will create file
+log with all errors and then filter "value too long" ones to errors
+file and run pgsql-fix-value-too-long.pl using this file. It will also
+restart import if there are more errors, so it will probably run
+import multiple times.
